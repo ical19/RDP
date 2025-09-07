@@ -1,0 +1,49 @@
+name: Windows RDP with Tailscale
+
+on:
+  workflow_dispatch:  # jalankan manual via tombol Run workflow di GitHub
+
+jobs:
+  rdp:
+    runs-on: windows-latest
+    timeout-minutes: 360   # max 6 jam
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install Tailscale
+        run: |
+          curl.exe -fsSL https://tailscale.com/install.ps1 | powershell -c -
+      
+      - name: Start Tailscale Daemon
+        run: |
+          Start-Process -FilePath "C:\Program Files\Tailscale\tailscaled.exe" -ArgumentList "--cleanup" -NoNewWindow
+          Start-Process -FilePath "C:\Program Files\Tailscale\tailscaled.exe" -NoNewWindow
+          Start-Sleep -Seconds 10
+
+      - name: Authenticate to Tailscale
+        run: |
+          & 'C:\Program Files\Tailscale\tailscale.exe' up --authkey $env:TAILSCALE_AUTH_KEY --hostname github-rdp
+
+        env:
+          TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
+      - name: Enable RDP
+        run: |
+          # Aktifkan RDP
+          Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+          # Buat user insider_user dengan password faisal_insider
+          net user insider_user faisal_insider /add
+          net localgroup administrators insider_user /add
+          Write-Output "User: insider_user / Pass: faisal_insider"
+
+      - name: Keep alive
+        run: |
+          Write-Output "Tailscale IP kamu ada di bawah:"
+          & 'C:\Program Files\Tailscale\tailscale.exe' ip -4
+          Write-Output "Gunakan user: insider_user dan password: faisal_insider untuk login RDP."
+          Write-Output "Jangan tutup workflow ini, biarkan jalan sampai selesai (maks 6 jam)."
+          Start-Sleep -Seconds 21600   # 6 jam

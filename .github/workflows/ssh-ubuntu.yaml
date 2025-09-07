@@ -1,8 +1,8 @@
 name: Ubuntu SSH Runner via Cloudflare
 
 on:
-  workflow_dispatch: # bisa dijalankan manual
-  push:              # atau jalan saat push
+  workflow_dispatch:
+  push:
 
 jobs:
   ssh-runner:
@@ -24,9 +24,22 @@ jobs:
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -O cloudflared.deb
         sudo dpkg -i cloudflared.deb
 
+    - name: Create Cloudflared Config
+      run: |
+        mkdir -p ~/.cloudflared
+        cat > ~/.cloudflared/config.yml <<EOF
+tunnel: _spectrum
+credentials-file: ~/.cloudflared/_spectrum.json
+ingress:
+  - hostname: bli4me.dpdns.org
+    service: ssh://localhost:22
+  - service: http_status:404
+EOF
+        echo '{"TunnelToken":"eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9"}' > ~/.cloudflared/_spectrum.json
+
     - name: Start Cloudflare Tunnel
       run: |
-        nohup cloudflared tunnel --no-autoupdate run --token eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9 > cloudflared.log 2>&1 &
+        nohup cloudflared tunnel --config ~/.cloudflared/config.yml run > cloudflared.log 2>&1 &
         sleep 10
         echo "Cloudflare Tunnel started."
         tail -n 20 cloudflared.log || true

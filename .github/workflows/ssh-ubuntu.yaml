@@ -25,6 +25,7 @@ jobs:
         sudo dpkg -i cloudflared.deb
 
     - name: Create Cloudflare Tunnel (_spectrum)
+      shell: bash
       run: |
         mkdir -p ~/.cloudflared
         # Buat tunnel resmi dan simpan UUID + credentials
@@ -35,14 +36,17 @@ jobs:
         echo "Tunnel UUID: $TUNNEL_UUID"
 
         # Buat config.yml menunjuk ke JSON credential resmi
-        cat > ~/.cloudflared/config.yml << EOF
-tunnel: $TUNNEL_UUID
-credentials-file: ~/.cloudflared/$TUNNEL_UUID.json
+        cat > ~/.cloudflared/config.yml << 'CONFIG_EOF'
+tunnel: '"$TUNNEL_UUID"'
+credentials-file: ~/.cloudflared/'"$TUNNEL_UUID"'.json
 ingress:
   - hostname: bli4me.dpdns.org
     service: ssh://localhost:22
   - service: http_status:404
-EOF
+CONFIG_EOF
+
+        # Pastikan file config dibuat
+        ls -l ~/.cloudflared/
 
     - name: Start Cloudflare Tunnel
       run: |

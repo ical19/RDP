@@ -1,0 +1,36 @@
+name: SSH Premium via Cloudflare
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ssh-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update & Install SSH
+        run: |
+          sudo apt update
+          sudo apt install -y openssh-server wget unzip
+          sudo systemctl enable ssh
+          sudo systemctl start ssh
+
+      - name: Buat User SSH
+        run: |
+          sudo useradd -m insider_user
+          echo "insider_user:Faisal_123!" | sudo chpasswd
+          sudo usermod -aG sudo insider_user
+          echo "User insider_user / Pass Faisal_123! ✅"
+
+      - name: Install Cloudflare Tunnel
+        run: |
+          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+
+      - name: Jalankan Cloudflare Tunnel (Expose SSH)
+        run: |
+          nohup cloudflared tunnel --url tcp://localhost:22 --no-autoupdate > tunnel.log 2>&1 &
+
+      - name: Tampilkan Hostname Cloudflare
+        run: |
+          sleep 10
+          cat tunnel.log | grep -o "trycloudflare.com[^ ]*"

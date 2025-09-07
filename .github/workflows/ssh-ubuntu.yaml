@@ -11,29 +11,33 @@ jobs:
     steps:
     - name: Update system & install SSH
       run: |
-        sudo apt update && sudo apt install -y openssh-server wget curl
+        sudo apt update
+        sudo apt install -y openssh-server wget curl
         echo "root:github123" | sudo chpasswd
         sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
         sudo systemctl enable ssh
         sudo systemctl start ssh
+        sudo systemctl status ssh --no-pager
 
     - name: Install Cloudflared
       run: |
-        wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-        sudo dpkg -i cloudflared-linux-amd64.deb
+        wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -O cloudflared.deb
+        sudo dpkg -i cloudflared.deb
 
     - name: Start Cloudflare Tunnel
+      env:
+        CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
       run: |
-        # Ganti <CLOUDFLARE_TOKEN> dengan Tunnel Token dari Cloudflare Zero Trust dashboard
-        nohup cloudflared tunnel --no-autoupdate run --token eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9 &
+        nohup cloudflared tunnel --no-autoupdate run --token "$CLOUDFLARE_TUNNEL_TOKEN" > cloudflared.log 2>&1 &
         sleep 10
         echo "Cloudflare Tunnel started."
+        tail -n 20 cloudflared.log || true
 
     - name: Show SSH Info
       run: |
         echo "======================================="
         echo "SSH Server siap!"
-        echo "Domain: bli4me.dpdns.org"
-        echo "Login: ssh root@bli4me.dpdns.org"
+        echo "Domain : bli4me.dpdns.org"
+        echo "Login  : ssh root@bli4me.dpdns.org"
         echo "Password: github123"
         echo "======================================="

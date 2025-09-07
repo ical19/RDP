@@ -1,36 +1,39 @@
-name: SSH Cloudflare Fixed
+name: Ubuntu SSH Runner via Cloudflare
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # bisa dijalankan manual
+  push:              # atau jalan saat push
 
 jobs:
-  ssh-server:
+  ssh-runner:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Update & Install SSH
-        run: |
-          sudo apt update
-          sudo apt install -y openssh-server wget unzip
-          sudo systemctl enable ssh
-          sudo systemctl start ssh
+    - name: Update system & install SSH
+      run: |
+        sudo apt update && sudo apt install -y openssh-server wget curl
+        echo "root:github123" | sudo chpasswd
+        sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+        sudo systemctl enable ssh
+        sudo systemctl start ssh
 
-      - name: Buat User SSH
-        run: |
-          sudo useradd -m insider_user
-          echo "insider_user:Faisal_123!" | sudo chpasswd
-          sudo usermod -aG sudo insider_user
-          echo "User insider_user / Pass Faisal_123! ✅"
+    - name: Install Cloudflared
+      run: |
+        wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+        sudo dpkg -i cloudflared-linux-amd64.deb
 
-      - name: Install Cloudflare Tunnel
-        run: |
-          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
+    - name: Start Cloudflare Tunnel
+      run: |
+        # Ganti <CLOUDFLARE_TOKEN> dengan Tunnel Token dari Cloudflare Zero Trust dashboard
+        nohup cloudflared tunnel --no-autoupdate run --token eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9 &
+        sleep 10
+        echo "Cloudflare Tunnel started."
 
-      - name: Jalankan Cloudflare Tunnel (Expose SSH)
-        run: |
-          nohup cloudflared tunnel --url tcp://localhost:22 --no-autoupdate > tunnel.log 2>&1 &
-          sleep 15
-          echo "=== LOG CLOUDFLARE ==="
-          cat tunnel.log
-          echo "=== HOST & PORT ==="
-          grep -oE "tcp://[0-9a-zA-Z\.\-]+:([0-9]+)" tunnel.log || true
+    - name: Show SSH Info
+      run: |
+        echo "======================================="
+        echo "SSH Server siap!"
+        echo "Domain: bli4me.dpdns.org"
+        echo "Login: ssh root@bli4me.dpdns.org"
+        echo "Password: github123"
+        echo "======================================="

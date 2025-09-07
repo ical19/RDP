@@ -30,14 +30,14 @@ jobs:
           Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
-          # Buat user insider_user dengan password yang sesuai policy
-          net user insider_user Faisal_Insider123! /add
+          # Buat user insider_user dengan password <=14 char
+          net user insider_user Faisal_123! /add
           net localgroup administrators insider_user /add
-          Write-Output "User: insider_user / Pass: Faisal_Insider123!"
+          Write-Output "User: insider_user / Pass: Faisal_123!"
 
       - name: Keep alive
         run: |
           Write-Output "Tailscale IP kamu ada di bawah:"
           & "C:\Program Files\Tailscale\tailscale.exe" ip -4
-          Write-Output "Gunakan user: insider_user dan password: Faisal_Insider123! untuk login RDP."
+          Write-Output "Gunakan user: insider_user dan password: Faisal_123! untuk login RDP."
           Start-Sleep -Seconds 21600   # 6 jam

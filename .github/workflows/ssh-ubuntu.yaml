@@ -1,4 +1,4 @@
-name: SSH Premium via Cloudflare
+name: SSH Cloudflare Fixed
 
 on:
   workflow_dispatch:
@@ -29,8 +29,8 @@ jobs:
       - name: Jalankan Cloudflare Tunnel (Expose SSH)
         run: |
           nohup cloudflared tunnel --url tcp://localhost:22 --no-autoupdate > tunnel.log 2>&1 &
-
-      - name: Tampilkan Hostname Cloudflare
-        run: |
-          sleep 10
-          cat tunnel.log | grep -o "trycloudflare.com[^ ]*"
+          sleep 15
+          echo "=== LOG CLOUDFLARE ==="
+          cat tunnel.log
+          echo "=== HOST & PORT ==="
+          grep -oE "tcp://[0-9a-zA-Z\.\-]+:([0-9]+)" tunnel.log || true

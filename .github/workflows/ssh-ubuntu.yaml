@@ -24,33 +24,10 @@ jobs:
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -O cloudflared.deb
         sudo dpkg -i cloudflared.deb
 
-    - name: Create Cloudflare Tunnel (_spectrum)
-      shell: bash
-      run: |
-        mkdir -p ~/.cloudflared
-        # Buat tunnel resmi dan simpan UUID + credentials
-        cloudflared tunnel create _spectrum
-
-        # Ambil UUID tunnel terbaru
-        TUNNEL_UUID=$(ls -t ~/.cloudflared/*.json | head -n1 | xargs -n1 basename | sed 's/.json//')
-        echo "Tunnel UUID: $TUNNEL_UUID"
-
-        # Buat config.yml menunjuk ke JSON credential resmi
-        cat > ~/.cloudflared/config.yml << 'CONFIG_EOF'
-tunnel: '"$TUNNEL_UUID"'
-credentials-file: ~/.cloudflared/'"$TUNNEL_UUID"'.json
-ingress:
-  - hostname: bli4me.dpdns.org
-    service: ssh://localhost:22
-  - service: http_status:404
-CONFIG_EOF
-
-        # Pastikan file config dibuat
-        ls -l ~/.cloudflared/
-
     - name: Start Cloudflare Tunnel
       run: |
-        nohup cloudflared tunnel --config ~/.cloudflared/config.yml run > cloudflared.log 2>&1 &
+        # Gunakan tunnel ID langsung untuk menjalankan tunnel
+        nohup cloudflared tunnel --url ssh://localhost:22 run _spectrum > cloudflared.log 2>&1 &
         sleep 10
         echo "Cloudflare Tunnel started."
         tail -n 20 cloudflared.log || true
@@ -62,4 +39,6 @@ CONFIG_EOF
         echo "Domain : bli4me.dpdns.org"
         echo "Login  : ssh root@bli4me.dpdns.org"
         echo "Password: github123"
+        echo "Tunnel ID: 27305952-c5af-4d12-b089-e1e9d49bc659"
+        echo "Tunnel Name: _spectrum"
         echo "======================================="

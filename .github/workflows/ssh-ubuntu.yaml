@@ -24,18 +24,25 @@ jobs:
         wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -O cloudflared.deb
         sudo dpkg -i cloudflared.deb
 
-    - name: Create Cloudflared Config
+    - name: Create Cloudflare Tunnel (_spectrum)
       run: |
         mkdir -p ~/.cloudflared
-        cat > ~/.cloudflared/config.yml <<EOF
-tunnel: _spectrum
-credentials-file: ~/.cloudflared/_spectrum.json
+        # Buat tunnel resmi dan simpan UUID + credentials
+        cloudflared tunnel create _spectrum
+
+        # Ambil UUID tunnel terbaru
+        TUNNEL_UUID=$(ls -t ~/.cloudflared/*.json | head -n1 | xargs -n1 basename | sed 's/.json//')
+        echo "Tunnel UUID: $TUNNEL_UUID"
+
+        # Buat config.yml menunjuk ke JSON credential resmi
+        cat > ~/.cloudflared/config.yml << EOF
+tunnel: $TUNNEL_UUID
+credentials-file: ~/.cloudflared/$TUNNEL_UUID.json
 ingress:
   - hostname: bli4me.dpdns.org
     service: ssh://localhost:22
   - service: http_status:404
 EOF
-        echo '{"TunnelToken":"eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9"}' > ~/.cloudflared/_spectrum.json
 
     - name: Start Cloudflare Tunnel
       run: |

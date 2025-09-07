@@ -25,10 +25,8 @@ jobs:
         sudo dpkg -i cloudflared.deb
 
     - name: Start Cloudflare Tunnel
-      env:
-        CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
       run: |
-        nohup cloudflared tunnel --no-autoupdate run --token "$CLOUDFLARE_TUNNEL_TOKEN" > cloudflared.log 2>&1 &
+        nohup cloudflared tunnel --no-autoupdate run --token eyJhIjoiMWYzNWZhMzE3Mzg5MjhlNGRlYmU4YmZhNjU5NzA3ZDAiLCJ0IjoiMjczMDU5NTItYzVhZi00ZDEyLWIwODktZTFlOWQ0OWJjNjU5IiwicyI6Ik1qRTBNRE0wTlRrdFltRmlNeTAwTkRZNExXRXpZMlV0TmpjeU5qaGtNVFUyTlRRMCJ9 > cloudflared.log 2>&1 &
         sleep 10
         echo "Cloudflare Tunnel started."
         tail -n 20 cloudflared.log || true

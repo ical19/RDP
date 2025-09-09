@@ -1,0 +1,26 @@
+name: LocalXpose TCP Tunnel
+
+on:
+  workflow_dispatch: # bisa dijalankan manual
+  push:
+    branches:
+      - main
+
+jobs:
+  tcp-tunnel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install LocalXpose
+        run: |
+          curl -s https://localxpose.io/install.sh | bash
+          lx version
+
+      - name: Start TCP Tunnel on port 80
+        env:
+          LX_TOKEN: bUKmQXQVc7rezi83ysAjeit9vx59WmAYaxuPhVvF
+        run: |
+          # Menjalankan tunnel TCP port 80 dengan Keep-Alive
+          lx tcp --remote 80 --token $LX_TOKEN --keep-alive

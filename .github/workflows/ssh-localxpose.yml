@@ -14,9 +14,10 @@ jobs:
         run: |
           curl -L https://api.localxpose.io/api/downloads/loclx-linux-amd64.deb -o loclx.deb
           sudo dpkg -i loclx.deb
-          sudo apt-get install -f  # Untuk mengatasi dependensi jika ada
+          sudo apt-get install -f -y
 
       - name: Start TCP Tunnel on port 80
         env:
           LX_TOKEN: bUKmQXQVc7rezi83ysAjeit9vx59WmAYaxuPhVvF
-        run: loclx tcp --remote 80 --token $LX_TOKEN --keep-alive
+        run: |
+          loclx tcp --port 80 --token $LX_TOKEN --keep-alive

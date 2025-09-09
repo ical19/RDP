@@ -23,7 +23,7 @@ jobs:
 
     - name: Start PageKite SSH Tunnel
       run: |
-        nohup pagekite ssh://localhost:22 undergraduate.pagekite.me ${{ secrets.PAGEKITE_TOKEN }} > pk.log 2>&1 &
+        nohup pagekite ssh://localhost:22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
         sleep 8
         echo "✅ Tunnel started!"
         cat pk.log

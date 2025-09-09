@@ -1,4 +1,4 @@
-name: SSH Runner with Pinggy and Banner
+name: SSH Runner with Pinggy and Banner (Fixed)
 
 on:
   workflow_dispatch:
@@ -21,19 +21,18 @@ jobs:
           echo "runner:runner" | sudo chpasswd
           echo "runner ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/runner
 
-      - name: Configure SSH Banner
+      - name: Create SSH Banner File
         run: |
-          # Buat file banner
-          sudo tee /etc/ssh/banner.txt > /dev/null << 'EOF'
-**********************************************
-*                                            *
-*      Welcome to GitHub Runner SSH!        *
-*                                            *
-*      Managed by Your Awesome Workflow     *
-*                                            *
-**********************************************
-EOF
-          # Aktifkan banner di SSH config
+          echo "**********************************************" | sudo tee /etc/ssh/banner.txt
+          echo "*                                            *" | sudo tee -a /etc/ssh/banner.txt
+          echo "*      Welcome to GitHub Runner SSH!        *" | sudo tee -a /etc/ssh/banner.txt
+          echo "*                                            *" | sudo tee -a /etc/ssh/banner.txt
+          echo "*      Managed by Your Awesome Workflow     *" | sudo tee -a /etc/ssh/banner.txt
+          echo "*                                            *" | sudo tee -a /etc/ssh/banner.txt
+          echo "**********************************************" | sudo tee -a /etc/ssh/banner.txt
+
+      - name: Enable SSH Banner
+        run: |
           sudo sed -i '/^#Banner none/c\Banner /etc/ssh/banner.txt' /etc/ssh/sshd_config
           sudo systemctl restart ssh
 
@@ -45,6 +44,4 @@ EOF
           cat pinggy.log
 
       - name: Keep workflow alive
-        run: |
-          echo "Tunnel running... workflow will now sleep indefinitely"
-          sleep infinity
+        run: sleep infinity

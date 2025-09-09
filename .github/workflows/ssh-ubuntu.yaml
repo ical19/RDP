@@ -1,29 +1,19 @@
-name: SSH via PageKite
+name: SSH via localhost.run (password)
 
 on:
-  workflow_dispatch: # Bisa dijalankan manual
+  workflow_dispatch: # manual trigger
 
 jobs:
-  build:
+  ssh-server:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v3
+      - name: Setup SSH Server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server
+          sudo service ssh start
+          echo "runner:runner" | sudo chpasswd
 
-    - name: Set Root Password
-      run: |
-        echo "root:github" | sudo chpasswd
-        echo "✅ Password root diset ke 'github'"
-
-    - name: Install PageKite
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y pagekite
-
-    - name: Start PageKite SSH Tunnel
-      run: |
-        nohup pagekite ssh://localhost:22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
-        sleep 8
-        echo "✅ Tunnel started!"
-        cat pk.log
+      - name: Start tunnel with localhost.run
+        run: |
+          ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 ssh.localhost.run

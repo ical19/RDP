@@ -1,7 +1,7 @@
-name: SSH via Cloudflare Tunnel
+name: SSH via Cloudflare Tunnel (TCP)
 
 on:
-  workflow_dispatch:   # jalan manual
+  workflow_dispatch:   # bisa jalan manual
   push:                # atau otomatis tiap push
 
 jobs:
@@ -21,11 +21,11 @@ jobs:
           wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared-linux-amd64.deb
 
-      - name: Start Cloudflare Tunnel for SSH
+      - name: Start Cloudflare Tunnel (TCP for SSH)
         run: |
-          nohup cloudflared tunnel --url ssh://localhost:22 --logfile tunnel.log > /dev/null 2>&1 &
+          nohup cloudflared tunnel --url tcp://localhost:22 --protocol tcp --logfile tunnel.log > /dev/null 2>&1 &
           sleep 10
-          cat tunnel.log
+          cat tunnel.log | grep -E "trycloudflare.com"
 
       - name: Keep Alive
         run: sleep infinity

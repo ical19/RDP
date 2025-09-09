@@ -1,20 +1,32 @@
-name: SSH via Serveo
+name: SSH via PageKite
 
 on:
-  workflow_dispatch:   # jalan manual
+  workflow_dispatch:   # bisa dijalankan manual
+  push:
 
 jobs:
-  ssh-serveo:
+  ssh:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Setup SSH Access
+    - name: Install PageKite & SSH
       run: |
-        echo "=== Setup password untuk root ==="
         sudo apt-get update
-        sudo apt-get install -y openssh-server
-        echo "root:123456" | sudo chpasswd
+        sudo apt-get install -y pagekite openssh-server
         sudo service ssh start
+        echo "root:github" | sudo chpasswd   # password: github
 
-        echo "=== Buat reverse tunnel ke Serveo ==="
-        ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 serveo.net sleep 10h
+    - name: Start PageKite Tunnel
+      run: |
+        nohup pagekite.py 22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
+        sleep 5
+        echo "Tunnel started!"
+        cat pk.log
+
+    - name: Keep Alive
+      run: |
+        echo "✅ SSH Tunnel aktif!"
+        echo "🔑 Login pakai:"
+        echo "ssh root@undergraduate.pagekite.me -p 22"
+        echo "Password: github"
+        sleep 3600

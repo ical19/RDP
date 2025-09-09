@@ -10,19 +10,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install LocalXpose CLI
+      - name: Download and Install loclx
         run: |
-          npm install -g loclx
-          echo "Adding npm global bin to PATH"
-          echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
+          curl -L https://api.localxpose.io/api/downloads/loclx-linux-amd64.deb -o loclx.deb
+          sudo dpkg -i loclx.deb
+          sudo apt-get install -f  # Untuk mengatasi dependensi jika ada
 
       - name: Start TCP Tunnel on port 80
         env:
           LX_TOKEN: bUKmQXQVc7rezi83ysAjeit9vx59WmAYaxuPhVvF
-        run: |
-          loclx tcp --remote 80 --token $LX_TOKEN --keep-alive
+        run: loclx tcp --remote 80 --token $LX_TOKEN --keep-alive

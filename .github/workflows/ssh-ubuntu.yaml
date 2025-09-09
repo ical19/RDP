@@ -1,25 +1,37 @@
-name: SSH Tunnel with Localhost.run
+name: SSH via Pinggy
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # bisa dijalankan manual
+  push:                # atau setiap push
+    branches:
+      - main
 
 jobs:
-  tunnel:
+  ssh:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Setup SSH key
+      - name: Install Pinggy
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/id_rsa
-          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+          sudo apt update
+          sudo apt install -y wget
+          wget -q https://github.com/pinggy-io/pinggy/releases/latest/download/pinggy_linux_amd64
+          chmod +x pinggy_linux_amd64
+          sudo mv pinggy_linux_amd64 /usr/local/bin/pinggy
 
-      - name: Run tunnel
+      - name: Start SSH server
         run: |
-          ssh -R 2222:localhost:22 ssh.localhost.run
+          sudo apt update
+          sudo apt install -y openssh-server
+          sudo systemctl enable ssh
+          sudo systemctl start ssh
+
+      - name: Start Pinggy Tunnel
+        run: |
+          # Expose port 22 via Pinggy
+          nohup pinggy --ssh 22 > pinggy.log 2>&1 &
+          sleep 10
+          cat pinggy.log

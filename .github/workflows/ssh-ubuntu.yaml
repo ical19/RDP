@@ -1,4 +1,4 @@
-name: SSH Runner with Pinggy (Persistent)
+name: SSH Runner with Pinggy and Banner
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
       - name: Update apt
         run: |
           sudo apt-get update -y || true
-          sudo apt-get install -y openssh-server curl
+          sudo apt-get install -y openssh-server curl figlet
 
       - name: Setup SSH user
         run: |
@@ -21,10 +21,21 @@ jobs:
           echo "runner:runner" | sudo chpasswd
           echo "runner ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/runner
 
-      - name: Start SSH server
+      - name: Configure SSH Banner
         run: |
-          sudo systemctl enable ssh
-          sudo systemctl start ssh
+          # Buat file banner
+          sudo tee /etc/ssh/banner.txt > /dev/null << 'EOF'
+**********************************************
+*                                            *
+*      Welcome to GitHub Runner SSH!        *
+*                                            *
+*      Managed by Your Awesome Workflow     *
+*                                            *
+**********************************************
+EOF
+          # Aktifkan banner di SSH config
+          sudo sed -i '/^#Banner none/c\Banner /etc/ssh/banner.txt' /etc/ssh/sshd_config
+          sudo systemctl restart ssh
 
       - name: Start Pinggy TCP Tunnel
         run: |

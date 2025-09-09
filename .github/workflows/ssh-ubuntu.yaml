@@ -1,19 +1,25 @@
-name: SSH via localhost.run (password)
+name: SSH Tunnel with Localhost.run
 
 on:
-  workflow_dispatch: # manual trigger
+  workflow_dispatch:
 
 jobs:
-  ssh-server:
+  tunnel:
     runs-on: ubuntu-latest
-    steps:
-      - name: Setup SSH Server
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openssh-server
-          sudo service ssh start
-          echo "runner:runner" | sudo chpasswd
 
-      - name: Start tunnel with localhost.run
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
         run: |
-          ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 ssh.localhost.run
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - name: Run tunnel
+        run: |
+          ssh -R 2222:localhost:22 ssh.localhost.run

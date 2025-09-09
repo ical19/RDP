@@ -1,31 +1,20 @@
-name: SSH via Cloudflare Tunnel (TCP)
+name: SSH via Serveo
 
 on:
-  workflow_dispatch:   # bisa jalan manual
-  push:                # atau otomatis tiap push
+  workflow_dispatch:   # jalan manual
 
 jobs:
-  ssh:
+  ssh-serveo:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install SSH server
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openssh-server
-          echo "root:12345" | sudo chpasswd
-          sudo service ssh start
+    - name: Setup SSH Access
+      run: |
+        echo "=== Setup password untuk root ==="
+        sudo apt-get update
+        sudo apt-get install -y openssh-server
+        echo "root:123456" | sudo chpasswd
+        sudo service ssh start
 
-      - name: Install Cloudflare Tunnel
-        run: |
-          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
-
-      - name: Start Cloudflare Tunnel (TCP for SSH)
-        run: |
-          nohup cloudflared tunnel --url tcp://localhost:22 --protocol tcp --logfile tunnel.log > /dev/null 2>&1 &
-          sleep 10
-          cat tunnel.log | grep -E "trycloudflare.com"
-
-      - name: Keep Alive
-        run: sleep infinity
+        echo "=== Buat reverse tunnel ke Serveo ==="
+        ssh -o StrictHostKeyChecking=no -R 2222:localhost:22 serveo.net sleep 10h

@@ -1,7 +1,7 @@
-name: SSH via PageKite
+name: SSH via PageKite (Password)
 
 on:
-  workflow_dispatch:   # bisa dijalankan manual
+  workflow_dispatch:
   push:
 
 jobs:
@@ -14,19 +14,18 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y pagekite openssh-server
         sudo service ssh start
-        echo "root:github" | sudo chpasswd   # password: github
+        echo "root:github" | sudo chpasswd   # password root = github
 
     - name: Start PageKite Tunnel
       run: |
-        nohup pagekite.py 22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
+        nohup pagekite 22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
         sleep 5
-        echo "Tunnel started!"
+        echo "✅ Tunnel started!"
         cat pk.log
 
     - name: Keep Alive
       run: |
-        echo "✅ SSH Tunnel aktif!"
-        echo "🔑 Login pakai:"
+        echo "🔑 Connect dengan perintah berikut:"
         echo "ssh root@undergraduate.pagekite.me -p 22"
         echo "Password: github"
         sleep 3600

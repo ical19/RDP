@@ -1,31 +1,29 @@
-name: SSH via PageKite (Password)
+name: SSH via PageKite
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_dispatch: # Bisa dijalankan manual
 
 jobs:
-  ssh:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install PageKite & SSH
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Set Root Password
+      run: |
+        echo "root:github" | sudo chpasswd
+        echo "✅ Password root diset ke 'github'"
+
+    - name: Install PageKite
       run: |
         sudo apt-get update
-        sudo apt-get install -y pagekite openssh-server
-        sudo service ssh start
-        echo "root:github" | sudo chpasswd   # password root = github
+        sudo apt-get install -y pagekite
 
-    - name: Start PageKite Tunnel
+    - name: Start PageKite SSH Tunnel
       run: |
-        nohup pagekite 22 undergraduate.pagekite.me:22 exk29b34eb4zbxfb8k8fz72xf4b4k88x > pk.log 2>&1 &
-        sleep 5
+        nohup pagekite ssh://localhost:22 undergraduate.pagekite.me ${{ secrets.PAGEKITE_TOKEN }} > pk.log 2>&1 &
+        sleep 8
         echo "✅ Tunnel started!"
         cat pk.log
-
-    - name: Keep Alive
-      run: |
-        echo "🔑 Connect dengan perintah berikut:"
-        echo "ssh root@undergraduate.pagekite.me -p 22"
-        echo "Password: github"
-        sleep 3600
